@@ -117,6 +117,7 @@ func (en *yourEngine) Decr(key []byte, value uint64, rw *bufio.ReadWriter) (resu
 func (en *yourEngine) Delete(key []byte, rw *bufio.ReadWriter) (isFound bool, noreply bool, err error) {
 	return
 }
+
 func (en *yourEngine) Close() (err error) {
 	return
 }
