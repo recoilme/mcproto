@@ -352,6 +352,7 @@ func isASCIILetter(b byte) bool {
 }
 
 func protocolError(rw *bufio.ReadWriter) (err error) {
+	println("protocolError", err.Error())
 	_, err = rw.Write(resultError)
 	if err != nil {
 		return
