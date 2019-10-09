@@ -208,6 +208,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 					//strings.Split(string(line), " ")
 					err = db.Gets(args[1:], rw)
 					if err != nil {
+						println(err.Error())
 						break
 					}
 				}
