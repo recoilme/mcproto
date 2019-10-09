@@ -180,6 +180,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 			case bytes.HasPrefix(line, cmdGet), bytes.HasPrefix(line, cmdGetB), bytes.HasPrefix(line, cmdGets), bytes.HasPrefix(line, cmdGetsB):
 				cntspace := bytes.Count(line, space)
 				if cntspace == 0 || !bytes.HasSuffix(line, crlf) {
+					println("cntspace == 0 || !bytes.HasSuffix(line, crlf)")
 					err = protocolError(rw)
 					if err != nil {
 						break
@@ -206,7 +207,9 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					args := bytes.Split(line[:len(line)-2], space)
 					//strings.Split(string(line), " ")
+					println("strt gets")
 					err = db.Gets(args[1:], rw)
+					println("end gets", err)
 					if err != nil {
 						println(err.Error())
 						break
