@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 var DebugConnErr = false
@@ -126,8 +127,10 @@ func (en *yourEngine) Close() (err error) {
 func ParseMc(c net.Conn, db McEngine, params string) {
 
 	defer c.Close()
+	defaultBuffer := 40960
 	for {
-		rw := bufio.NewReadWriter(bufio.NewReader(c), bufio.NewWriter(c))
+		rw := bufio.NewReadWriter(bufio.NewReaderSize(c, defaultBuffer), bufio.NewWriterSize(c, defaultBuffer))
+		c.SetDeadline(time.Now().Add(60 * time.Second))
 		line, err := rw.ReadSlice('\n')
 
 		if err != nil {
