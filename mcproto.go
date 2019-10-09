@@ -207,9 +207,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					args := bytes.Split(line[:len(line)-2], space)
 					//strings.Split(string(line), " ")
-					println("strt gets")
 					err = db.Gets(args[1:], rw)
-					println("end gets", err)
 					if err != nil {
 						println(err.Error())
 						break
