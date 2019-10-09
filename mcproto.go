@@ -179,8 +179,8 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 
 			case bytes.HasPrefix(line, cmdGet), bytes.HasPrefix(line, cmdGetB), bytes.HasPrefix(line, cmdGets), bytes.HasPrefix(line, cmdGetsB):
 				cntspace := bytes.Count(line, space)
-				if cntspace == 0 || !bytes.HasSuffix(line, crlf) {
-					println("cntspace == 0 || !bytes.HasSuffix(line, crlf)")
+				if cntspace == 0 { //|| !bytes.HasSuffix(line, crlf) {
+					println("cntspace == 0")
 					err = protocolError(rw)
 					if err != nil {
 						break
