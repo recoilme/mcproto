@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var DebugConnErr = false
+var DebugConnErr = true
 
 var (
 	cmdSet     = []byte("set")
@@ -127,7 +127,8 @@ func (en *yourEngine) Close() (err error) {
 func ParseMc(c net.Conn, db McEngine, params string) {
 
 	defer c.Close()
-	defaultBuffer := 40960
+	defaultBuffer := 4096
+	fmt.Println("New conn:", c)
 	for {
 		rw := bufio.NewReadWriter(bufio.NewReaderSize(c, defaultBuffer), bufio.NewWriterSize(c, defaultBuffer))
 		c.SetDeadline(time.Now().Add(60 * time.Second))
@@ -140,6 +141,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 					fmt.Println(err)
 				}
 			} else {
+				println("close conn", c)
 				break //close connection
 			}
 		}
@@ -150,42 +152,62 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				key, flags, exp, size, noreply, err := scanSetLine(line, bytes.HasPrefix(line, cmdSetB))
 				if err != nil || size == -1 {
 					fmt.Println(err, size)
-					rw.Write(resultError)
-					rw.Flush()
+					_, err = rw.Write(resultError)
+					if err != nil {
+						fmt.Println("error write set error", err.Error())
+						break
+					}
+					err = rw.Flush()
+					if err != nil {
+						fmt.Println("error write set error Flush", err.Error())
+						break
+					}
 					err = nil
 					break
 				}
 				b := make([]byte, size+2)
 				_, err = io.ReadFull(rw, b)
 				if err != nil {
+					fmt.Println(err.Error())
 					break
 				}
 				noreply, err = db.Set([]byte(key), b[:size], flags, exp, size, noreply, rw)
 				if err != nil {
-					fmt.Println(err)
+					fmt.Println(err.Error())
+					break
 				}
 				if !noreply {
 					if err != nil {
 						_, err = rw.Write(resultNotStored)
-						err = nil
+						if err != nil {
+							fmt.Println(err.Error())
+							break
+						}
 					} else {
 						_, err = rw.Write(resultStored)
+						if err != nil {
+							fmt.Println(err.Error())
+							break
+						}
 					}
 					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 					err = rw.Flush()
 					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 				}
 
 			case bytes.HasPrefix(line, cmdGet), bytes.HasPrefix(line, cmdGetB), bytes.HasPrefix(line, cmdGets), bytes.HasPrefix(line, cmdGetsB):
 				cntspace := bytes.Count(line, space)
-				if cntspace == 0 { //|| !bytes.HasSuffix(line, crlf) {
+				if cntspace == 0 || !bytes.HasSuffix(line, crlf) {
 					println("cntspace == 0")
 					err = protocolError(rw)
 					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 				}
@@ -200,10 +222,12 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 					if !noreply {
 						_, err = rw.Write(resultEnd)
 						if err != nil {
+							fmt.Println(err.Error())
 							break
 						}
 						err = rw.Flush()
 						if err != nil {
+							fmt.Println(err.Error())
 							break
 						}
 					}
@@ -232,10 +256,12 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 								_, err = rw.Write(resultNotFound)
 							}
 							if err != nil {
+								fmt.Println(err.Error())
 								break
 							}
 							err = rw.Flush()
 							if err != nil {
+								fmt.Println(err.Error())
 								break
 							}
 						}
@@ -243,6 +269,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					err = protocolError(rw)
 					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 				}
@@ -257,10 +284,12 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 								_, err = rw.Write(resultNotFound)
 							}
 							if err != nil {
+								fmt.Println(err.Error())
 								break
 							}
 							err = rw.Flush()
 							if err != nil {
+								fmt.Println(err.Error())
 								break
 							}
 						}
@@ -268,6 +297,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					err = protocolError(rw)
 					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 				}
@@ -283,10 +313,12 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 								_, err = rw.Write(resultNotFound)
 							}
 							if err != nil {
+								fmt.Println(err.Error())
 								break
 							}
 							err = rw.Flush()
 							if err != nil {
+								fmt.Println(err.Error())
 								break
 							}
 						}
@@ -294,6 +326,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					err = protocolError(rw)
 					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 				}
@@ -302,6 +335,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 
 			//check err
 			if err != nil {
+				fmt.Println("check err:", err.Error())
 				if resumableError(err) {
 					fmt.Println(err)
 				} else {
@@ -362,9 +396,13 @@ func protocolError(rw *bufio.ReadWriter) (err error) {
 	}
 	_, err = rw.Write(resultError)
 	if err != nil {
+		println("protocolError", err.Error())
 		return
 	}
 	err = rw.Flush()
+	if err != nil {
+		println("protocolError", err.Error())
+	}
 	return
 }
 
