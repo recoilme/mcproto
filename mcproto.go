@@ -89,7 +89,7 @@ func init() {
 // McEngine implenets base memcache commands
 type McEngine interface {
 	Get(key []byte, rw *bufio.ReadWriter) (value []byte, noreply bool, err error)
-	Gets(keys [][]byte, rw *bufio.ReadWriter) error
+	Gets(keys [][]byte, rw *bufio.ReadWriter) (keysvals [][]byte, err error)
 	Set(key, value []byte, flags uint32, exp int32, size int, noreply bool, rw *bufio.ReadWriter) (noreplyresp bool, err error)
 	Incr(key []byte, value uint64, rw *bufio.ReadWriter) (result uint64, isFound bool, noreply bool, err error)
 	Decr(key []byte, value uint64, rw *bufio.ReadWriter) (result uint64, isFound bool, noreply bool, err error)
@@ -124,11 +124,12 @@ func (en *yourEngine) Close() (err error) {
 }
 */
 
+// ParseMc - parse memcache protocol
 func ParseMc(c net.Conn, db McEngine, params string) {
 
 	defer c.Close()
-	defaultBuffer := 4096
-	fmt.Println("New conn:", c)
+	defaultBuffer := 4096 * 2
+	//fmt.Println("New conn:", c)
 	for {
 		rw := bufio.NewReadWriter(bufio.NewReaderSize(c, defaultBuffer), bufio.NewWriterSize(c, defaultBuffer))
 		c.SetDeadline(time.Now().Add(60 * time.Second))
@@ -137,9 +138,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 		if err != nil {
 			if err.Error() != "EOF" {
 				//network error and so on
-				if DebugConnErr {
-					fmt.Println(err)
-				}
+				fmt.Println(err)
 			} else {
 				println("close conn", c)
 				break //close connection
@@ -234,9 +233,27 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					args := bytes.Split(line[:len(line)-2], space)
 					//strings.Split(string(line), " ")
-					err = db.Gets(args[1:], rw)
+					kv, err := db.Gets(args[1:], rw)
 					if err != nil {
 						println(err.Error())
+						break
+					}
+					var k []byte
+					for i, b := range kv {
+						if i%2 == 0 {
+							k = b
+							continue
+						}
+						fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", k, len(b), b)
+					}
+					_, err = rw.Write(resultEnd)
+					if err != nil {
+						fmt.Println(err.Error())
+						break
+					}
+					err = rw.Flush()
+					if err != nil {
+						fmt.Println(err.Error())
 						break
 					}
 				}
