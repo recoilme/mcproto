@@ -161,9 +161,9 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 		line, err := rw.ReadSlice('\n')
 
 		if err != nil {
-			if err.Error() != "EOF" {
+			if err != io.EOF {
 				//network error and so on
-				fmt.Println(err)
+				fmt.Println(err.Error())
 			} else {
 				println("close conn", err.Error())
 				break //close connection
