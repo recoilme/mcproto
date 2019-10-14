@@ -135,15 +135,15 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 		log.Fatal(err)
 	}
 	//params
-	deadline := "60000"
+	deadline := "1000"
 	if len(p["deadline"]) > 0 {
 		deadline = p["deadline"][0]
 	}
 	deadlineMs, err := strconv.Atoi(deadline)
 	if err != nil {
-		deadlineMs = 60000
+		deadlineMs = 1000
 	}
-	println("deadline:", deadlineMs)
+	//println("deadline:", deadlineMs)
 	dl := time.Duration(deadlineMs) * time.Millisecond
 
 	buf := "4096"
@@ -154,7 +154,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 	if err != nil {
 		defaultBuffer = 4096
 	}
-	println("buf:", defaultBuffer)
+	//println("buf:", defaultBuffer)
 	for {
 		rw := bufio.NewReadWriter(bufio.NewReaderSize(c, defaultBuffer), bufio.NewWriterSize(c, defaultBuffer))
 		c.SetDeadline(time.Now().Add(dl))
