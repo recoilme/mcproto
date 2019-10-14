@@ -264,21 +264,21 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 						break
 					}
 					/*
-						for i := range kv {
-							if i%2 != 0 {
-								fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", kv[i-1], len(kv[i]), kv[i])
+							for i := range kv {
+								if i%2 != 0 {
+									fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", kv[i-1], len(kv[i]), kv[i])
+								}
 							}
+						_, err = rw.Write(resultEnd)
+						if err != nil {
+							fmt.Println(err.Error())
+							break
+						}
+						err = rw.Flush()
+						if err != nil {
+							fmt.Println(err.Error())
+							break
 						}*/
-					_, err = rw.Write(resultEnd)
-					if err != nil {
-						fmt.Println(err.Error())
-						break
-					}
-					err = rw.Flush()
-					if err != nil {
-						fmt.Println(err.Error())
-						break
-					}
 				}
 
 			case bytes.HasPrefix(line, cmdClose), bytes.HasPrefix(line, cmdCloseB):
