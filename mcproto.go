@@ -8,9 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
+	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -126,13 +129,35 @@ func (en *yourEngine) Close() (err error) {
 
 // ParseMc - parse memcache protocol
 func ParseMc(c net.Conn, db McEngine, params string) {
-
 	defer c.Close()
-	defaultBuffer := 4096 * 2
-	//fmt.Println("New conn:", c)
+	p, err := url.ParseQuery(params)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//params
+	deadline := "60000"
+	if len(p["deadline"]) > 0 {
+		deadline = p["deadline"][0]
+	}
+	deadlineMs, err := strconv.Atoi(deadline)
+	if err != nil {
+		deadlineMs = 60000
+	}
+	println("deadline:", deadlineMs)
+	dl := time.Duration(deadlineMs) * time.Millisecond
+
+	buf := "4096"
+	if len(p["buf"]) > 0 {
+		buf = p["buf"][0]
+	}
+	defaultBuffer, err := strconv.Atoi(buf)
+	if err != nil {
+		defaultBuffer = 4096
+	}
+	println("buf:", defaultBuffer)
 	for {
 		rw := bufio.NewReadWriter(bufio.NewReaderSize(c, defaultBuffer), bufio.NewWriterSize(c, defaultBuffer))
-		c.SetDeadline(time.Now().Add(60 * time.Second))
+		c.SetDeadline(time.Now().Add(dl))
 		line, err := rw.ReadSlice('\n')
 
 		if err != nil {
