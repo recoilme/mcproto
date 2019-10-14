@@ -165,7 +165,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				//network error and so on
 				fmt.Println(err)
 			} else {
-				println("close conn", c)
+				println("close conn", err.Error())
 				break //close connection
 			}
 		}
