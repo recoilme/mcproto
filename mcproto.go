@@ -258,16 +258,17 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				} else {
 					args := bytes.Split(line[:len(line)-2], space)
 					//strings.Split(string(line), " ")
-					kv, err := db.Gets(args[1:], rw)
+					_, err := db.Gets(args[1:], rw)
 					if err != nil {
 						println(err.Error())
 						break
 					}
-					for i := range kv {
-						if i%2 != 0 {
-							fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", kv[i-1], len(kv[i]), kv[i])
-						}
-					}
+					/*
+						for i := range kv {
+							if i%2 != 0 {
+								fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", kv[i-1], len(kv[i]), kv[i])
+							}
+						}*/
 					_, err = rw.Write(resultEnd)
 					if err != nil {
 						fmt.Println(err.Error())
