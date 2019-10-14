@@ -166,7 +166,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 				//fmt.Println(err.Error())
 			} else {
 				//println("close conn", err.Error())
-				break //close connection
+				//break //close connection
 			}
 		}
 		if len(line) > 0 {
@@ -228,7 +228,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 			case bytes.HasPrefix(line, cmdGet), bytes.HasPrefix(line, cmdGetB), bytes.HasPrefix(line, cmdGets), bytes.HasPrefix(line, cmdGetsB):
 				cntspace := bytes.Count(line, space)
 				if cntspace == 0 || !bytes.HasSuffix(line, crlf) {
-					println("cntspace == 0")
+					fmt.Println("cntspace == 0")
 					err = protocolError(rw)
 					if err != nil {
 						fmt.Println(err.Error())
@@ -260,7 +260,7 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 					//strings.Split(string(line), " ")
 					_, err := db.Gets(args[1:], rw)
 					if err != nil {
-						println(err.Error())
+						fmt.Println(err.Error())
 						break
 					}
 					/*
