@@ -238,13 +238,10 @@ func ParseMc(c net.Conn, db McEngine, params string) {
 						println(err.Error())
 						break
 					}
-					var k []byte
-					for i, b := range kv {
-						if i%2 == 0 {
-							k = b
-							continue
+					for i := range kv {
+						if i%2 != 0 {
+							fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", kv[i-1], len(kv[i]), kv[i])
 						}
-						fmt.Fprintf(rw, "VALUE %s 0 %d\r\n%s\r\n", k, len(b), b)
 					}
 					_, err = rw.Write(resultEnd)
 					if err != nil {
